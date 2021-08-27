@@ -323,6 +323,3 @@ def main():
 
 main()
 
-#keys = json.load(open('.pubkeys'))
-
-#print(keys)
