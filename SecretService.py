@@ -78,21 +78,7 @@ def send_an_email(from_address, to_address, subject, message_text, secret, pubke
 
     server.close()
 
-'''
-    important notes about using gmail
 
-    - Gmail has locked things down pretty good with what it considers less secure apps. That 
-        would include access your Gmail account from the smtplib library in Python. However, there 
-        is a work around. You can enable access from "Less Secure Apps" by going to your Gmail 
-        account and enabling that feature. However, you should do this at your own peril, and after 
-        carefully reading the warnings: https://support.google.com/accounts/answer/6010255.
-gmail {'gmail': True, 'yahoo': False, 'hotmail': False, 'live': False, '-EMAIL FROM-': '', '-EMAIL TO-': '', '-EMAIL SUBJECT-': '', '-USER-': '', '-PASSWORD-': '', '-EMAIL TEXT-': 'Fake Message Here\n', '-SECRET TEXT-': 'Secret Message Here\n'} True
-    smtplib | https://docs.python.org/3/library/smtplib.html?#module-smtplib   
-    email.message | https://docs.python.org/3/library/email.message.html?#module-email.message   
-    email examples in Python | https://docs.python.org/3.7/library/email.examples.html  
-
-    
-'''
 def decode_message(message, user):
     incoming = json.loads(message)
     mykeys = json.load(open('.SecretService'))
@@ -248,7 +234,7 @@ def SecretService():
     tab1_layout = [
               [sg.T('To:', size=(8,1)), sg.Input(key='-EMAIL TO-')],
               [sg.T('Subject:', size=(8,1)), sg.Input(key='-EMAIL SUBJECT-')],
-              [sg.Text('Enter Fake Message', font='Default 18')],
+              [sg.Text('Enter Decoy Message', font='Default 18')],
               [sg.Multiline(size=(150,20), key='-EMAIL TEXT-',expand_x=True, expand_y=True)],
               [sg.Text('Enter Secret Message', font='Default 18')],
               [sg.Multiline(size=(150,20), key='-SECRET TEXT-',expand_x=True, expand_y=True)],
@@ -260,7 +246,7 @@ def SecretService():
     tab3_layout = [
               [sg.T('To:', size=(8,1)), sg.Input(key='-EMAIL TO2-')],
               [sg.T('Subject:', size=(8,1)), sg.Input(key='-EMAIL SUBJECT2-',default_text="Let's Catch Up Tonight")],
-              [sg.Text('Enter Fake Message', font='Default 18')],
+              [sg.Text('Enter Decoy Message', font='Default 18')],
               [sg.Multiline(default_text = "I'll call you later today", size=(150,20), key='-EMAIL TEXT2-',expand_x=True, expand_y=True)],
               [sg.Button('Send Key'),  sg.Button('Exit', key='Exit1')]]
     layout = [[sg.TabGroup([[sg.Tab('Exchange Keys', tab3_layout), sg.Tab('Sending', tab1_layout), sg.Tab('Receiving', tab2_layout)]])]]    
