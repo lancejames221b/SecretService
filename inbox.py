@@ -151,9 +151,10 @@ def inbox():
                         size=(90,40),
                         key='table', enable_events=True,row_height=50,col_widths=50,right_click_menu=['&Right', ['Reply']]),sg.Image('logo.png')],
                 [sg.Multiline(size = (130,40), key='output',background_color='black', text_color='green', font='Ubuntu')],
-              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('Close')]]
+              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('Close'), sg.Text(key='status', text_color='green', background_color='black')]]
 
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True)
+    window
     while True:
         event, values = window.read()
         if event in ('Close', None): break

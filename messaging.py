@@ -1,4 +1,5 @@
 from email.policy import default
+from inspect import trace
 from ecies.utils import generate_eth_key
 from ecies import encrypt, decrypt
 import binascii, json, os, sys
@@ -12,7 +13,7 @@ from email.message import EmailMessage
 from random import randint
 import pandas as pd
 import itertools
-import PySimpleGUI as sg
+import traceback
 
 PATH = 'chaffe.csv'
 
@@ -69,8 +70,7 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     elif 'yahoo' in service:
         smtp_host, smtp_port = yahoo_smtp_server
     else:
-        sg.popup('Username does not contain a supported email provider')
-        return
+        return None
     server = smtp.SMTP(host=smtp_host, port=smtp_port)
     server.starttls()
     server.login(user=user, password=password)
@@ -119,12 +119,14 @@ def getkeys(user):
     try:
         return keyset[user]
     except Exception as e:
-        
+        traceback.print_exc()
         return None
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
     #messages.pop()
+    window['status'].update("Checking for New Messages, Please Wait...")
+    window['table'].update("")
     userpubkeys = dict()
     userinfo = json.load(open('.SecretService'))
     for x in userinfo:
@@ -162,12 +164,12 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
                         if SecretServiceKey[0][1]:
                             logkeys(email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore'))
-                            #sg.popup_quick_message('Received Key for '+str(email_from), background_color='red', non_blocking=True)
+                            
 
                             
                         else:
                             logkeys(email_from,str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')))
-                            #sg.popup_quick_message('Received Key for '+str(email_from), background_color='red', non_blocking=True)
+                            
 
                     if "X-Gmail-Message-State" in msg.keys():
                         email_subject = msg['subject']
@@ -209,9 +211,10 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
 
 
                                 
-       
+        window['status'].update("")
         return 
     except Exception as e:
         print(e)
-
+        traceback.print_exc()
+        window['status'].update("")
         return
