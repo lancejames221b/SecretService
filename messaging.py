@@ -35,7 +35,6 @@ def listpubkeys():
     keys = json.load(open('.pubkeys'))
     return keys
 
-data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
 def keygen(email, password, service):
     privKey = generate_eth_key()
     privKeyHex = privKey.to_hex()
@@ -123,7 +122,7 @@ def getkeys(user):
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
     Q = False
-    if len(messages) == 1: messages.pop()
+    
     waitmessages = []
     userpubkeys = dict()
     userinfo = json.load(open('.SecretService'))
