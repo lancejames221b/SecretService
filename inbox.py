@@ -148,7 +148,7 @@ def inbox():
     selection = dict()
     header_list = ['From', 'Date', 'Public ECC/ECIES Ethereum Key']
     options=[[sg.Frame('Contacts',[[sg.Table(values = contactlist,auto_size_columns=True,
-                        headings = ['Authenticated Users'],
+                        headings = ['Authenticated Contact List'],
                         justification='left',
                         num_rows=min(37, 37),
                         display_row_numbers=False,
