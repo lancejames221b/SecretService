@@ -125,10 +125,10 @@ def getkeys(user):
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
     #messages.pop()
-    window['status'].update("Checking for New Messages, Please Wait...")
-    window['table'].update("")
+    
     userpubkeys = dict()
     userinfo = json.load(open('.SecretService'))
+    user = str()
     for x in userinfo:
         user = x
     if os.path.isfile('.pubkeys'):
@@ -142,18 +142,20 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
         mail.login(FROM_EMAIL,FROM_PWD)
         mail.select('inbox')
 
-        data = mail.search(None, 'ALL')
+        data = mail.search(None, 'SINCE "20-Aug-2021"')
         mail_ids = data[1]
         id_list = mail_ids[0].split()   
         first_email_id = int(id_list[0])
         latest_email_id = int(id_list[-1])
+        window['status'].update("Retrieving Public Keys, this can take some time...")
+    #   window['table'].update("")
 
         for i in range(latest_email_id,first_email_id, -1):
             data = mail.fetch(str(i), '(RFC822)' )
             for response_part in data:
                 arr = response_part[0]
                 if isinstance(arr, tuple):
-                    msg = email.message_from_string(str(arr[1],'utf-8'))
+                    msg = email.message_from_string(str(arr[1],'latin-1"'))
                     if "X-Google-Message-State" in msg.keys():
                         email_subject = msg['subject']
                         SecretServiceKey = decode_header(msg['X-Google-Message-State'])
@@ -164,18 +166,17 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
                         if SecretServiceKey[0][1]:
                             logkeys(email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore'))
-                            
+                            window['status'].update("Retrieving Public Keys: "+str(email_from))
 
                             
                         else:
                             logkeys(email_from,str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')))
+                            window['status'].update("Retrieving Public Keys: "+str(email_from))
                             
-
                     if "X-Gmail-Message-State" in msg.keys():
-                        email_subject = msg['subject']
                         SecretService = decode_header(msg['X-Gmail-Message-State'])
                         #print(SecretService, 'Debug', SecretService[0][1]) 
-                       # SecretService = bytes.fromhex(SecretService[0][0])
+                        # SecretService = bytes.fromhex(SecretService[0][0])
                         
                         
                         
@@ -184,34 +185,42 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         EncryptedMessage = bytes.fromhex(SecretService[0][0].decode(errors='ignore')).decode(errors='ignore')
                         plaintext = decode_message(EncryptedMessage, user)
                         if plaintext:
+                            window['status'].update("Retrieving Email: "+str(email_from))
                             
                             #window['-MESSAGES-'].print("Date :", msg['Date'])
                             #   window['-MESSAGES-'].print('From: ', email_from)
                             #   window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n",plaintext['plaintext'])
                             #  window['-MESSAGES-'].print("\n---MESSAGE END---\n")
-                            messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                            messages.sort()
-                             
-                            window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
-                            window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+                            try:
+                                messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
+                                messages.sort()
+                                
+                                window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
+                                window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+                            except Exception as e:
+                                traceback.print_exc()
 
                     
                         else:
                             EncryptedMessage = bytes.fromhex(SecretService[0][0]).decode()
                             plaintext = decode_message(EncryptedMessage, user)
                             if plaintext:
-                               # window['-MESSAGES-'].print("Date :", msg['Date'])
-                               # window['-MESSAGES-'].print('From: ', email_from)
-                               # window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n", plaintext['plaintext'])
-                               # window['-MESSAGES-'].print("\n---MESSAGE END---\n")
-                                messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                                messages.sort()
-                                window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
-                                window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
-
+                                # window['-MESSAGES-'].print("Date :", msg['Date'])
+                                # window['-MESSAGES-'].print('From: ', email_from)
+                                # window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n", plaintext['plaintext'])
+                                # window['-MESSAGES-'].print("\n---MESSAGE END---\n")
+                                try:
+                                    messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
+                                    messages.sort()
+                                    window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
+                                    window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+                                except Exception as e:
+                                    traceback.print_exc()
+                    
 
                                 
         window['status'].update("")
+        mail.close()
         return 
     except Exception as e:
         print(e)
