@@ -49,8 +49,8 @@ def encryption(pubKeyHex, plaintext):
     return {'ciphertext': str(binascii.hexlify(encrypted)).strip("b'"), 'pubKeyHex': pubKeyHex}
 
 def decryption(ciphertext, privKeyHex):
-    ciphertext = ciphertext.strip()
-    decrypted = decrypt(privKeyHex, binascii.unhexlify(ciphertext.strip())) 
+    ciphertext = ciphertext
+    decrypted = decrypt(privKeyHex, binascii.unhexlify(ciphertext)) 
     return {'plaintext': decrypted.decode()}
 
     
@@ -79,8 +79,8 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     # create the email message headers and set the payload
     secret = json.dumps(secret)
     msg = EmailMessage()
-    if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'latin-1').hex()
-    if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'latin-1').hex()
+    if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'utf-8').hex()
+    if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'utf-8').hex()
     msg['From'] = from_address
     msg['To'] = to_address
     msg['Subject'] = subject
@@ -154,7 +154,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
             for response_part in data:
                 arr = response_part[0]
                 if isinstance(arr, tuple):
-                    msg = email.message_from_string(str(arr[1],'latin-1"'))
+                    msg = email.message_from_string(str(arr[1],'utf-8"'))
                     if "X-Google-Message-State" in msg.keys():
                         email_subject = msg['subject']
                         SecretServiceKey = decode_header(msg['X-Google-Message-State'])
@@ -169,6 +169,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
 
                             
                         else:
+                            print("Else PK")
                             logkeys(email_from,str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')))
                             window['status'].update("Retrieving Public Keys: "+str(email_from))
                             
@@ -202,6 +203,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
 
                     
                         else:
+                            print("Else, Messages")
                             EncryptedMessage = bytes.fromhex(SecretService[0][0]).decode()
                             plaintext = decode_message(EncryptedMessage, user)
                             if plaintext:
@@ -218,24 +220,29 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                     waitmessages.append([email_from, msg['Date'], None,EncryptedMessage])
                                     Q = True
                     
-
-        if Q: read_email_from_gmail(window, messages=[])
-        window['status'].update("")
-        mail.close()
         contactlist = []
         contacts = listpubkeys()
         for i in contacts:
             contactlist.append([i])
         window['contacts'].update(values=contactlist)
+        mail.close()
+        window['status'].update("")
+        if Q: read_email_from_gmail(window, messages=[])
+        
+        
+        
         return 
     except Exception as e:
         print(e)
         traceback.print_exc()
-        if Q: read_email_from_gmail(window, messages = [])
-        window['status'].update("")
+        
+        
         contactlist = []
         contacts = listpubkeys()
         for i in contacts:
             contactlist.append([i])
         window['contacts'].update(values=contactlist)
         mail.close()
+        window['status'].update("")
+        if Q: read_email_from_gmail(window, messages = [])
+        

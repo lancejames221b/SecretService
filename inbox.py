@@ -186,7 +186,7 @@ def inbox():
                     window['output'].update(data[element][3])
                     selection = data[element]
                 except:
-                    sg.popup_quick_message("Messages are still downloading, try again shortly.")
+                    sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself")
                 
         if event == 'contacts':
             print(event, values, values[event])
