@@ -122,7 +122,10 @@ def getkeys(user):
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
-    if len(messages) == 1: messages.pop()
+    if len(messages) == 1: 
+        messages.pop()
+    else:
+        messages = []
     Q = False
     waitmessages = []
     userpubkeys = dict()

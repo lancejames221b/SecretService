@@ -1,45 +1,28 @@
 #!/usr/bin/env python
 import sys
 import PySimpleGUI as sg
-from tkinter import font
-import tkinter
-root = tkinter.Tk()
-fonts = list(font.families())
-fonts.sort()
-root.destroy()
 
-'''
-    Showing fonts in PSG / tk
-'''
+# Recipe for getting keys, one at a time as they are released
+# If want to use the space bar, then be sure and disable the "default focus"
 
-sg.theme('Black')
+layout = [[sg.Text("Press a key or scroll mouse")],
+          [sg.Text("", size=(18, 1), key='text')],
+          [sg.Button("OK", key='OK')]]
 
-layout = [[sg.Text('My Text Element',
-                size=(20, 1),
-                click_submits=True,
-                relief=sg.RELIEF_GROOVE,
-                font='Courier` 25',
-                text_color='#FF0000',
-                background_color='white',
-                justification='center',
-                pad=(5, 3),
-                key='-text-',
-                tooltip='This is a text element',
-                )],
-          [sg.Listbox(fonts, size=(30, 20), change_submits=True, key='-list-')],
-          [sg.Input(key='-in-')],
-          [sg.Button('Read', bind_return_key=True), sg.Exit()]]
+window = sg.Window("Keyboard Test", layout,
+                   return_keyboard_events=True, use_default_focus=False)
 
-window = sg.Window('My new window', layout)
-
-while True:     # Event Loop
+# ---===--- Loop taking in user input --- #
+while True:
     event, values = window.read()
-    if event in (sg.WIN_CLOSED, 'Exit'):
+    text_elem = window['text']
+    if event in ("OK", None):
+        print(event, "exiting")
         break
-    text_elem = window['-text-']
-    print(event, values)
-    if values['-in-'] != '':
-        text_elem.update(font=values['-in-'])
-    else:
-        text_elem.update(font=(values['-list-'][0], 25))
+    if len(event) == 1:
+        text_elem.update(value='%s - %s' % (event, ord(event)))
+    if event is not None:
+        text_elem.update(event)
+
+
 window.close()
