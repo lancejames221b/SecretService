@@ -1,3 +1,4 @@
+from email import header
 from os import read
 import PySimpleGUI as sg
 from random import randint as rand
@@ -134,13 +135,26 @@ def reply(to_email = None, reply_message = None):
 
 def inbox():
     global data
+    contactlist = []
     userinfo = json.load(open('.SecretService'))
     user = str()
+    contacts = listpubkeys()
+    for i in contacts:
+        contactlist.append([i])
+    print(contactlist)
     for i in userinfo:
         user = i
     mypubkey = userinfo[user]['pubKeyHex']
     selection = dict()
     header_list = ['From', 'Date', 'Public ECC/ECIES Ethereum Key']
+    options=[[sg.Frame('Contacts',[[sg.Table(values = contactlist,auto_size_columns=True,
+                        headings = ['Authenticated Users'],
+                        justification='left',
+                        num_rows=min(37, 37),
+                        display_row_numbers=False,
+                        font='Ubuntu',
+                        size=(50,30),key='contacts',enable_events=True,right_click_menu=['&Right', ['Email']])]]
+    )]]
     layout = [[sg.Table(values=data,
                         headings=header_list,
                         auto_size_columns=True,
@@ -149,12 +163,15 @@ def inbox():
                         display_row_numbers=False,
                         font='Ubuntu',
                         size=(90,40),
-                        key='table', enable_events=True,row_height=50,col_widths=50,right_click_menu=['&Right', ['Reply']]),sg.Image('logo.png')],
-                [sg.Multiline(size = (130,40), key='output',background_color='black', text_color='green', font='Ubuntu')],
+                        key='table', enable_events=True,row_height=50,col_widths=50,right_click_menu=['&Right', ['Reply']]),sg.Image('logo.png'), ],
+                [sg.Multiline(size = (84,40), key='output',background_color='black', text_color='green', font='Ubuntu'),sg.Column(layout=options)],
               [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('Close'), sg.Text(key='status', text_color='green', background_color='black')]]
 
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True)
-    window
+    data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
+
+    threading.Thread(target=read_email_from_gmail,args=(window,data),daemon=True).start()
+    
     while True:
         event, values = window.read()
         if event in ('Close', None): break
@@ -165,8 +182,15 @@ def inbox():
             window['output'].update('')
             for element in values[event]:
                 print(data)
-                window['output'].update(data[element][3])
-                selection = data[element]
+                try:
+                    window['output'].update(data[element][3])
+                    selection = data[element]
+                except:
+                    sg.popup_quick_message("Messages are still downloading, try again shortly.")
+                
+        if event == 'contacts':
+            print(event, values, values[event])
+
         if event == 'Reply':
             if len(selection) == 0:
                 reply(to_email='lancejames@unit221b.com',reply_message="RE: Welcome to SecretService\n\n")
@@ -174,6 +198,20 @@ def inbox():
                 reply(to_email=selection[0],reply_message="\n\n\n\nOn "+selection[1]+" "+selection[0]+" wrote:\n"+selection[3])
         if event == "Compose Email":
             compose()
+        if event == 'Email':
+            contactlist = []
+            contacts = listpubkeys()
+            for i in contacts:
+                contactlist.append([i])
+            print(values['contacts'])
+            for element in values['contacts']:
+                reply(to_email = contactlist[element][0])
+
+
+            
+        
+
+
         
 
 

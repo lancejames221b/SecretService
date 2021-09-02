@@ -31,9 +31,9 @@ def getrandomchaffe(chaffe=chaffe):
 
 
 
-def listpubkeys(window):
+def listpubkeys():
     keys = json.load(open('.pubkeys'))
-    window['-MESSAGES-'].update(json.dumps(keys, indent=4))
+    return keys
 
 data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
 def keygen(email, password, service):
@@ -49,7 +49,8 @@ def encryption(pubKeyHex, plaintext):
     return {'ciphertext': str(binascii.hexlify(encrypted)).strip("b'"), 'pubKeyHex': pubKeyHex}
 
 def decryption(ciphertext, privKeyHex):
-    decrypted = decrypt(privKeyHex, binascii.unhexlify(ciphertext)) 
+    ciphertext = ciphertext.strip()
+    decrypted = decrypt(privKeyHex, binascii.unhexlify(ciphertext.strip())) 
     return {'plaintext': decrypted.decode()}
 
     
@@ -78,8 +79,8 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     # create the email message headers and set the payload
     secret = json.dumps(secret)
     msg = EmailMessage()
-    if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'utf-8').hex()
-    if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'utf-8').hex()
+    if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'latin-1').hex()
+    if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'latin-1').hex()
     msg['From'] = from_address
     msg['To'] = to_address
     msg['Subject'] = subject
@@ -97,9 +98,6 @@ def decode_message(message, user):
     mykeys = json.load(open('.SecretService'))
     privkey = mykeys[user]['privKeyHex']
     plaintext = decryption(incoming['ciphertext'], privkey)
-
-    
-    
     return plaintext
     
 def logkeys(from_email, pubkey):
@@ -108,7 +106,7 @@ def logkeys(from_email, pubkey):
         keyset = json.load(open('.pubkeys'))
         
     keyset.update({from_email: pubkey.strip('''"''')})
-    json.dump(keyset, open('.pubkeys', 'w'))
+    json.dump(keyset, open('.pubkeys', 'w'), indent=4)
     return keyset
 
 def getkeys(user):
@@ -124,8 +122,9 @@ def getkeys(user):
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
-    #messages.pop()
-    
+    Q = False
+    if len(messages) == 1: messages.pop()
+    waitmessages = []
     userpubkeys = dict()
     userinfo = json.load(open('.SecretService'))
     user = str()
@@ -193,12 +192,13 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                             #  window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                             try:
                                 messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                                messages.sort()
+                                #messages.sort()
                                 
                                 window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
                                 window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
                             except Exception as e:
-                                traceback.print_exc()
+                                waitmessages.append([email_from, msg['Date'], None,EncryptedMessage])
+                                Q = True
 
                     
                         else:
@@ -211,19 +211,31 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                 # window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                                 try:
                                     messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                                    messages.sort()
+                                    #messages.sort()
                                     window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
                                     window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
                                 except Exception as e:
-                                    traceback.print_exc()
+                                    waitmessages.append([email_from, msg['Date'], None,EncryptedMessage])
+                                    Q = True
                     
 
-                                
+        if Q: read_email_from_gmail(window, messages=[])
         window['status'].update("")
         mail.close()
+        contactlist = []
+        contacts = listpubkeys()
+        for i in contacts:
+            contactlist.append([i])
+        window['contacts'].update(values=contactlist)
         return 
     except Exception as e:
         print(e)
         traceback.print_exc()
+        if Q: read_email_from_gmail(window, messages = [])
         window['status'].update("")
-        return
+        contactlist = []
+        contacts = listpubkeys()
+        for i in contacts:
+            contactlist.append([i])
+        window['contacts'].update(values=contactlist)
+        mail.close()
