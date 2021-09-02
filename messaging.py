@@ -11,6 +11,8 @@ import smtplib  as smtp
 from email.message import EmailMessage
 from random import randint
 import pandas as pd
+import itertools
+import PySimpleGUI as sg
 
 PATH = 'chaffe.csv'
 
@@ -122,7 +124,7 @@ def getkeys(user):
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
-    messages.pop()
+    #messages.pop()
     userpubkeys = dict()
     userinfo = json.load(open('.SecretService'))
     for x in userinfo:
@@ -159,12 +161,12 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         email_from = msg['from']
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
                         if SecretServiceKey[0][1]:
-                            logkeys(email_from, bytes.fromhex(SecretServiceKey[0][0].decode()).decode())
+                            logkeys(email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore'))
                             #sg.popup_quick_message('Received Key for '+str(email_from), background_color='red', non_blocking=True)
 
                             
                         else:
-                            logkeys(email_from,str(bytes.fromhex(SecretServiceKey[0][0]).decode()))
+                            logkeys(email_from,str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')))
                             #sg.popup_quick_message('Received Key for '+str(email_from), background_color='red', non_blocking=True)
 
                     if "X-Gmail-Message-State" in msg.keys():
@@ -177,7 +179,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         
                         email_from = msg['from']
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
-                        EncryptedMessage = bytes.fromhex(SecretService[0][0].decode()).decode()
+                        EncryptedMessage = bytes.fromhex(SecretService[0][0].decode(errors='ignore')).decode(errors='ignore')
                         plaintext = decode_message(EncryptedMessage, user)
                         if plaintext:
                             
@@ -186,8 +188,10 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                             #   window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n",plaintext['plaintext'])
                             #  window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                             messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                            window['table'].update(values=messages)
-                            window['table'].update(num_rows=min(len(messages), 5))
+                            messages.sort()
+                             
+                            window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
+                            window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
 
                     
                         else:
@@ -199,8 +203,10 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                # window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n", plaintext['plaintext'])
                                # window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                                 messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                                window['table'].update(values=messages)
-                                window['table'].update(num_rows=min(len(messages), 5))
+                                messages.sort()
+                                window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
+                                window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+
 
                                 
        
