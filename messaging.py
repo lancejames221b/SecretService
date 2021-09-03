@@ -192,7 +192,10 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         email_from = msg['from']
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
                         EncryptedMessage = bytes.fromhex(SecretService[0][0].decode(errors='ignore')).decode(errors='ignore')
-                        plaintext = decode_message(EncryptedMessage, user)
+                        try:
+                            plaintext = decode_message(EncryptedMessage, user)
+                        except ValueError as e:
+                            continue
                         if plaintext:
                             window['status'].update("Retrieving Email: "+str(email_from))
                             
@@ -215,7 +218,10 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         else:
                             print("Else, Messages")
                             EncryptedMessage = bytes.fromhex(SecretService[0][0]).decode()
-                            plaintext = decode_message(EncryptedMessage, user)
+                            try:
+                                plaintext = decode_message(EncryptedMessage, user)
+                            except ValueError as e:
+                                continue
                             if plaintext:
                                 # window['-MESSAGES-'].print("Date :", msg['Date'])
                                 # window['-MESSAGES-'].print('From: ', email_from)
