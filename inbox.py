@@ -18,7 +18,16 @@ def users_parser(email):
         multiple.append(mail.strip())
     return multiple
 
+def keyimage(string):
+    from PIL import Image, ImageDraw, ImageFont
+ 
+    img = Image.new('RGB', (100, 30), color = (73, 109, 137))
+    fnt = ImageFont.truetype('CaviarDreams.ttf', 15)
 
+    d = ImageDraw.Draw(img)
+    d.text((10,10), string,  font=fnt,fill=(255,255,0))
+ 
+    img.save('key.png')
 
 
 def compose():
@@ -121,6 +130,7 @@ def reply(to_email = None, reply_message = None):
               [sg.Button('Send', key='Send'), sg.Button('Exit', key = 'Exit')]]
     window = sg.Window('SecretService - '+str(user), layout_reply,resizable=True)
 
+
     while True:  # Event Loop
         event, values = window.read()
         if event in (None, 'Exit'):
@@ -131,10 +141,7 @@ def reply(to_email = None, reply_message = None):
             pubkey = getkeys(to_email)
             sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red')
             if pubkey and isinstance(pubkey, str):
-
-                
-            
-                send_an_email(from_address=user,
+                            send_an_email(from_address=user,
                             to_address=to_email,
                             subject=values['-EMAIL SUBJECT-'],
                             message_text=values['-EMAIL TEXT-'],
@@ -142,7 +149,7 @@ def reply(to_email = None, reply_message = None):
                             user=user,
                             password=userinfo[user]['password'],
                             service=service)
-                window.close()
+            window.close()
             if pubkey and isinstance(pubkey, list):
                 for index, keys in enumerate(pubkey):
                     
@@ -176,9 +183,10 @@ def reply(to_email = None, reply_message = None):
                 window.close()      
 
 
-
 def inbox():
     global data
+    THREAD_EVENT = '-THREAD-'
+    QUERY = str()
     contactlist = []
     userinfo = json.load(open('.SecretService'))
     user = str()
@@ -229,7 +237,24 @@ def inbox():
                 except:
                     sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself")
                 
-
+        if event == THREAD_EVENT:
+            QUERY = str()
+            keyverification = values[THREAD_EVENT]
+            if keyverification[0] == 'NEWKEY':
+                keyimage(keyverification[2])
+                QUERY = sg.popup_yes_no(keyverification[1]+" has sent a key\n\n"+keyverification[2]+"\n\nIf you have verified the user's public key then hit OK.",title=keyverification[1]+' New Key Approval',keep_on_top=True,image='key.png',font='Ubuntu')
+                if QUERY == "Yes": 
+                    logkeys(keyverification[1], keyverification[2])
+                    window['status'].update("Added New Public Key: "+keyverification[1])
+            if keyverification[0] == 'KEYCHANGE':
+                keyimage(keyverification[2])
+                QUERY = sg.popup_ok_cancel(keyverification[1]+" PUBLIC KEY HAS CHANGED!!!\n"+keyverification[2]+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=keyverification[1]+' Updated Key Approval',keep_on_top=True,image='key.png', font='Ubuntu')
+                if QUERY == "Yes": 
+                    logkeys(keyverification[1], keyverification[2])
+                    window['status'].update("Public Key Updated: "+keyverification[1])
+  
+            
+            
 
         if event == 'Reply':
             if len(selection) == 0:

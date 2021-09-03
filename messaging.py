@@ -14,7 +14,6 @@ from random import randint
 import pandas as pd
 import itertools
 import traceback
-import PySimpleGUI as pg
 
 PATH = 'chaffe.csv'
 
@@ -102,15 +101,10 @@ def decode_message(message, user):
     return plaintext
     
 def logkeys(from_email, pubkey):
-    query = str()
     keyset = dict()
     if os.path.isfile('.pubkeys'):
         keyset = json.load(open('.pubkeys'))
-    if from_email not in keyset.keys():
-        query = pg.popup_ok_cancel(from_email+" has sent a key\n"+pubkey.strip('''"''')+"\nIf you have verified the user's public key then hit OK.",title=from_email+' New Key Approval')
-    if from_email in keyset.keys() and pubkey.strip('''"''') not in keyset[from_email]:
-        query = pg.popup_ok_cancel(from_email+" PUBLIC KEY HAS CHANGED!!!\n"+pubkey.strip('''"''')+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=from_email+' Updated Key Approval')
-    if query == 'OK': keyset.update({from_email: pubkey.strip('''"''')})
+    keyset.update({from_email: pubkey.strip('''"''')})
     json.dump(keyset, open('.pubkeys', 'w'), indent=4)
     return keyset
 
@@ -175,16 +169,30 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         email_from = msg['from']
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
                         if SecretServiceKey[0][1]:
-                            logkeys(email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore'))
-                            window['status'].update("Retrieving Public Keys: "+str(email_from))
-                            
+                            keyverify = listpubkeys()
+                            if email_from not in keyverify.keys():
+                                window.write_event_value('-THREAD-',['NEWKEY', email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore').strip('''"''')],)
+
+                                
+                            if email_from in keyverify.keys() and bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore').strip('''"''') not in keyverify[email_from]:
+                                window.write_event_value('-THREAD-',['KEYCHANGE', email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore').strip('''"''')],)
+                                    
+                        
 
 
                             
                         else:
                             print("Else PK")
-                            logkeys(email_from,str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')))
-                            window['status'].update("Retrieving Public Keys: "+str(email_from))
+                            try:
+                                keyverify = listpubkeys()
+                                if email_from not in keyverify.keys():
+                                    window.write_event_value('-THREAD-',['NEWKEY', email_from, str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')).strip('''"''')])
+                                    
+                                if email_from in keyverify.keys() and str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')).strip('''"''') not in keyverify[email_from]:
+                                    window.write_event_value('-THREAD-',['KEYCHANGE',email_from, str(bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore')).strip('''"''')])
+                                    
+                            except:
+                                return
                             
                     if "X-Gmail-Message-State" in msg.keys():
                         SecretService = decode_header(msg['X-Gmail-Message-State'])
