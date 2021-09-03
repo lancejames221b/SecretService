@@ -128,7 +128,7 @@ def reply(to_email = None, reply_message = None):
             break
     
         if event == 'Send':
-            pubkey = getkeys(",".join(to_email))
+            pubkey = getkeys(to_email)
             sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red')
             if pubkey and isinstance(pubkey, str):
 
