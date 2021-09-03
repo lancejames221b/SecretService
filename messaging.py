@@ -131,7 +131,8 @@ def getkeys(user):
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
     
-    if len(messages) > 0: messages.pop(0)
+    if '''Wed 01 Sep 2021 02:09:28 PM EDT''' in messages[0]:
+        messages.pop(0)
 
 
 
