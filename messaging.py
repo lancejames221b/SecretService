@@ -111,6 +111,7 @@ def logkeys(from_email, pubkey):
     return keyset
 
 def getkeys(user):
+    print(user)
     multiple_user = []
     if os.path.isfile('.pubkeys'): 
         keyset = json.load(open('.pubkeys'))
@@ -130,10 +131,6 @@ def getkeys(user):
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
-    
-    
-
-
     Q = False
     userpubkeys = dict()
     userinfo = json.load(open('.SecretService'))

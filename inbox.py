@@ -62,6 +62,7 @@ def compose():
                             service=service,keyrequest=True)
                 window.close()
         if event == 'Send':
+            print(values['EMAIL TO-'])
             pubkey = getkeys(values['-EMAIL TO-'])
             if not values['-EMAIL TO-']:
                 sg.popup('Forgot to put a user in the To field')
@@ -109,9 +110,9 @@ def reply(to_email = None, reply_message = None):
     mypubkey = userinfo[user]['pubKeyHex']
     
     service = 'gmail'
-    
+    if isinstance(to_email, list): to_email = ','.join(to_email)
     layout_reply = [
-              [sg.T('To:'+",".join(to_email), size=(50,1)),sg.Button("Send Key",key='keyexchange')],
+              [sg.T('To:'+to_email, size=(50,1)),sg.Button("Send Key",key='keyexchange')],
               [sg.T('Subject:', size=(8,1)), sg.Input(key='-EMAIL SUBJECT-',font='Ubuntu', default_text=decoy['subject'])],
               [sg.Text('Enter Decoy Message', font='Ubuntu')],
               [sg.Multiline(size=(150,20), key='-EMAIL TEXT-',background_color='white', text_color='black',font='Ubuntu',default_text=decoy['body'])],
