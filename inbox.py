@@ -11,6 +11,16 @@ sg.theme("Black")
 
 data = data
 
+def users_parser(email):
+    multiple = []
+    email = email.split(",")
+    for mail in email:
+        multiple.append(mail.strip())
+    return multiple
+
+
+
+
 def compose():
     decoy = getrandomchaffe()
     userinfo = json.load(open('.SecretService'))
@@ -56,7 +66,7 @@ def compose():
             if not values['-EMAIL TO-']:
                 sg.popup('Forgot to put a user in the To field')
             else:
-                if pubkey:
+                if pubkey and isinstance(pubkey, str):
 
                     sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red')
                 
@@ -69,6 +79,21 @@ def compose():
                                 password=userinfo[user]['password'],
                                 service=service)
                     window.close()
+                if pubkey and isinstance(pubkey, list):
+                    values['-EMAIL TO-'] = users_parser(values['-EMAIL TO-'])
+                    for index, keys in enumerate(pubkey):
+                        
+
+                        send_an_email(from_address=user,
+                                    to_address=values['-EMAIL TO-'][index],
+                                    subject=values['-EMAIL SUBJECT-'],
+                                    message_text=values['-EMAIL TEXT-'],
+                                    secret=encryption(keys, values['-SECRET TEXT-']),
+                                    user=user,
+                                    password=userinfo[user]['password'],
+                                    service=service)
+                    window.close()
+
                 else:
                     sg.popup("Missing Pubkey for User. Click Send Your Key and Request Key From User.")
     window.close()              
@@ -86,7 +111,7 @@ def reply(to_email = None, reply_message = None):
     service = 'gmail'
     
     layout_reply = [
-              [sg.T('To:'+to_email, size=(50,1)),sg.Button("Send Key",key='keyexchange')],
+              [sg.T('To:'+",".join(to_email), size=(50,1)),sg.Button("Send Key",key='keyexchange')],
               [sg.T('Subject:', size=(8,1)), sg.Input(key='-EMAIL SUBJECT-',font='Ubuntu', default_text=decoy['subject'])],
               [sg.Text('Enter Decoy Message', font='Ubuntu')],
               [sg.Multiline(size=(150,20), key='-EMAIL TEXT-',background_color='white', text_color='black',font='Ubuntu',default_text=decoy['body'])],
@@ -102,21 +127,39 @@ def reply(to_email = None, reply_message = None):
             break
     
         if event == 'Send':
-            pubkey = getkeys(to_email)
-
-
+            pubkey = getkeys(",".join(to_email))
             sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red')
+            if pubkey and isinstance(pubkey, str):
+
+                
+            
+                send_an_email(from_address=user,
+                            to_address=to_email,
+                            subject=values['-EMAIL SUBJECT-'],
+                            message_text=values['-EMAIL TEXT-'],
+                            secret=encryption(pubkey, values['-SECRET TEXT-']),
+                            user=user,
+                            password=userinfo[user]['password'],
+                            service=service)
+                window.close()
+            if pubkey and isinstance(pubkey, list):
+                for index, keys in enumerate(pubkey):
+                    
+
+                    send_an_email(from_address=user,
+                                to_address=to_email[index],
+                                subject=values['-EMAIL SUBJECT-'],
+                                message_text=values['-EMAIL TEXT-'],
+                                secret=encryption(keys, values['-SECRET TEXT-']),
+                                user=user,
+                                password=userinfo[user]['password'],
+                                service=service)
+                window.close()
+
+
+
         
-            send_an_email(from_address=user,
-                        to_address=to_email,
-                        subject=values['-EMAIL SUBJECT-'],
-                        message_text=values['-EMAIL TEXT-'],
-                        secret=encryption(pubkey, values['-SECRET TEXT-']),
-                        user=user,
-                        password=userinfo[user]['password'],
-                        service=service)
-    
-            window.close()        
+        
         if event == 'keyexchange':
                 pubkey = getkeys(to_email)
                 sg.popup_quick_message('Sending your Public Key... this will take a moment...', background_color='red')
@@ -141,7 +184,6 @@ def inbox():
     contacts = listpubkeys()
     for i in contacts:
         contactlist.append([i])
-    print(contactlist)
     for i in userinfo:
         user = i
     mypubkey = userinfo[user]['pubKeyHex']
@@ -165,7 +207,7 @@ def inbox():
                         size=(90,40),
                         key='table', enable_events=True,row_height=50,col_widths=50,right_click_menu=['&Right', ['Reply']]),sg.Image('logo.png'), ],
                 [sg.Multiline(size = (84,40), key='output',background_color='black', text_color='green', font='Ubuntu'),sg.Column(layout=options)],
-              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('Close'), sg.Text(key='status', text_color='green', background_color='black')]]
+              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('Close'), sg.Text(key='status', size=(50,1), text_color='green', background_color='black')]]
 
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True, return_keyboard_events=True)
     data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
@@ -180,17 +222,15 @@ def inbox():
         if event == 'table':
             window['output'].update('')
             for element in values[event]:
-                print(data)
                 try:
                     window['output'].update(data[element][3])
                     selection = data[element]
                 except:
                     sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself")
                 
-        if event == 'contacts':
-            print(event, values, values[event])
 
-        if event in ('Reply', 'Control_L:37'):
+
+        if event == 'Reply':
             if len(selection) == 0:
                 reply(to_email='lancejames@unit221b.com',reply_message="RE: Welcome to SecretService\n\n")
             else:
@@ -202,9 +242,15 @@ def inbox():
             contacts = listpubkeys()
             for i in contacts:
                 contactlist.append([i])
-            print(values['contacts'])
-            for element in values['contacts']:
-                reply(to_email = contactlist[element][0])
+            print(values['contacts'], len(values['contacts']))
+            if len(values['contacts']) > 1:
+                emails = []
+                for element in values['contacts']:
+                    emails.append(contactlist[element][0])
+                reply(to_email = emails)
+            else:
+                for element in values['contacts']:
+                    reply(to_email = contactlist[element][0])
 
 
             
