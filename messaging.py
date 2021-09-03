@@ -14,6 +14,7 @@ from random import randint
 import pandas as pd
 import itertools
 import traceback
+import PySimpleGUI as pg
 
 PATH = 'chaffe.csv'
 
@@ -101,12 +102,15 @@ def decode_message(message, user):
     return plaintext
     
 def logkeys(from_email, pubkey):
+    query = str()
     keyset = dict()
     if os.path.isfile('.pubkeys'):
         keyset = json.load(open('.pubkeys'))
-    
-        
-    keyset.update({from_email: pubkey.strip('''"''')})
+    if from_email not in keyset.keys():
+        query = pg.popup_ok_cancel(from_email+" has sent a key\n"+pubkey.strip('''"''')+"\nIf you have verified the user's public key then hit OK.",title=from_email+' New Key Approval')
+    if from_email in keyset.keys() and pubkey.strip('''"''') not in keyset[from_email]:
+        query = pg.popup_ok_cancel(from_email+" PUBLIC KEY HAS CHANGED!!!\n"+pubkey.strip('''"''')+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=from_email+' Updated Key Approval')
+    if query == 'OK': keyset.update({from_email: pubkey.strip('''"''')})
     json.dump(keyset, open('.pubkeys', 'w'), indent=4)
     return keyset
 
