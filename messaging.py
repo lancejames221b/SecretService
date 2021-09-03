@@ -131,9 +131,7 @@ def getkeys(user):
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
     
-    if '''Wed 01 Sep 2021 02:09:28 PM EDT''' in messages[0]:
-        messages.pop(0)
-
+    
 
 
     Q = False
@@ -178,6 +176,8 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         if SecretServiceKey[0][1]:
                             logkeys(email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore'))
                             window['status'].update("Retrieving Public Keys: "+str(email_from))
+                            
+
 
                             
                         else:
@@ -205,6 +205,8 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                             #  window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                             try:
                                 messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
+                                if '''Wed 01 Sep 2021 02:09:28 PM EDT''' in messages[0]:
+                                    messages.pop(0)
                                 #messages.sort()
                                 
                                 window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
@@ -224,6 +226,8 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                 # window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                                 try:
                                     messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
+                                    if '''Wed 01 Sep 2021 02:09:28 PM EDT''' in messages[0]:
+                                        messages.pop(0)
                                     #messages.sort()
                                     window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
                                     window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
@@ -239,11 +243,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
         window['status'].update("")
         if Q: 
             read_email_from_gmail(window, messages = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']])
-        elif len(messages) == 0:
-            messages = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
-            window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
-            window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
-
+        
 
         
         
@@ -263,8 +263,5 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
         window['status'].update("")
         if Q: 
             read_email_from_gmail(window, messages = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']])
-        elif len(messages) == 0:
-            messages = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
-            window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
-            window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+       
         
