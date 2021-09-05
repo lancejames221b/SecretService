@@ -81,9 +81,9 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     msg = EmailMessage()
     if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'utf-8').hex()
     if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'utf-8').hex()
-    msg['From'] = from_address.strip()
-    msg['To'] = to_address.strip()
-    msg['Subject'] = subject.strip()
+    msg['From'] = from_address
+    msg['To'] = to_address
+    msg['Subject'] = subject
     
     msg.set_payload(message_text)
 
@@ -279,4 +279,3 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
         if Q: 
             read_email_from_gmail(window, messages = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']])
        
-        
