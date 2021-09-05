@@ -185,6 +185,7 @@ def reply(to_email = None, reply_message = None):
 
 def inbox():
     global data
+    keylist = []
     THREAD_EVENT = '-THREAD-'
     QUERY = str()
     contactlist = []
@@ -240,18 +241,21 @@ def inbox():
         if event == THREAD_EVENT:
             QUERY = str()
             keyverification = values[THREAD_EVENT]
-            if keyverification[0] == 'NEWKEY':
+            
+            if keyverification[0] == 'NEWKEY' and keyverification[2] not in keylist:
                 keyimage(keyverification[2])
                 QUERY = sg.popup_yes_no(keyverification[1]+" has sent a key\n\n"+keyverification[2]+"\n\nIf you have verified the user's public key then hit OK.",title=keyverification[1]+' New Key Approval',keep_on_top=True,image='key.png',font='Ubuntu')
                 if QUERY == "Yes": 
                     logkeys(keyverification[1], keyverification[2])
                     window['status'].update("Added New Public Key: "+keyverification[1])
-            if keyverification[0] == 'KEYCHANGE':
+                    keylist.append(keyverification[2])
+            if keyverification[0] == 'KEYCHANGE' and keyverification[2] not in keylist:
                 keyimage(keyverification[2])
                 QUERY = sg.popup_ok_cancel(keyverification[1]+" PUBLIC KEY HAS CHANGED!!!\n"+keyverification[2]+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=keyverification[1]+' Updated Key Approval',keep_on_top=True,image='key.png', font='Ubuntu')
                 if QUERY == "Yes": 
                     logkeys(keyverification[1], keyverification[2])
                     window['status'].update("Public Key Updated: "+keyverification[1])
+                    keylist.append(keyverification[2])
   
             
             

@@ -18,6 +18,7 @@ def Register():
     sg.change_look_and_feel('Black')
     url = 'https://myaccount.google.com/apppasswords'
     webbrowser.open(url)
+    sg.popup('Please turn on 2FA to use SecretService',title='2FA for Gmail Required',)
     layout = [
     [sg.Text('Please make an app password in your email security settings for the password below')],
     [sg.Text('Email', size=(15, 1)), sg.InputText(key='-REG EMAIL-')],
