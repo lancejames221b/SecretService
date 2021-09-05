@@ -238,10 +238,7 @@ def inbox():
                     sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself")
                 
         if event == THREAD_EVENT:
-            QUERY = str()
-            keyverification = values[THREAD_EVENT]
-            if keyverification[0] == 'NEWKEY':
-                keyimage(keyverification[2])
+            QUERY = str()l
                 QUERY = sg.popup_yes_no(keyverification[1]+" has sent a key\n\n"+keyverification[2]+"\n\nIf you have verified the user's public key then hit OK.",title=keyverification[1]+' New Key Approval',keep_on_top=True,image='key.png',font='Ubuntu')
                 if QUERY == "Yes": 
                     logkeys(keyverification[1], keyverification[2])

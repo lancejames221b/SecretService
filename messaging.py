@@ -81,9 +81,9 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     msg = EmailMessage()
     if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'utf-8').hex()
     if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'utf-8').hex()
-    msg['From'] = from_address
-    msg['To'] = to_address
-    msg['Subject'] = subject
+    msg['From'] = from_address.strip()
+    msg['To'] = to_address.strip()
+    msg['Subject'] = subject.strip()
     
     msg.set_payload(message_text)
 
