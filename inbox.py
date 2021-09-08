@@ -71,7 +71,6 @@ def compose():
                             service=service,keyrequest=True)
                 window.close()
         if event == 'Send':
-            print(values['EMAIL TO-'])
             pubkey = getkeys(values['-EMAIL TO-'])
             if not values['-EMAIL TO-']:
                 sg.popup('Forgot to put a user in the To field')
