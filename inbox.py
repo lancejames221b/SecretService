@@ -2,8 +2,6 @@ from email import header
 from os import read
 import PySimpleGUI as sg
 from random import randint as rand
-
-
 from messaging import *
 import threading
 import time
@@ -216,7 +214,7 @@ def inbox():
                         size=(90,40),
                         key='table', enable_events=True,row_height=50,col_widths=50,right_click_menu=['&Right', ['Reply']]),sg.Image('logo.png'), ],
                 [sg.Multiline(size = (84,40), key='output',background_color='black', text_color='green', font='Ubuntu'),sg.Column(layout=options)],
-              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('Close'), sg.Text(key='status', size=(50,1), text_color='green', background_color='black')]]
+              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('My Public Key', key='MyKey'), sg.Button('Close'), sg.Text(key='status', size=(50,1), text_color='green', background_color='black')]]
 
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True, return_keyboard_events=True)
     data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
@@ -226,6 +224,11 @@ def inbox():
     while True:
         event, values = window.read()
         if event in ('Close', None): break
+        if event == 'MyKey':
+            
+            window.TKroot.clipboard_clear()
+            window.TKroot.clipboard_append(str(mypubkey))
+            sg.PopupOK(str(mypubkey), title='Your Public Key Copied to Clipboard')
         if event == "Check Email":
             threading.Thread(target=read_email_from_gmail,args=(window,data),daemon=True).start()
         if event == 'table':
