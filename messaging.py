@@ -2,6 +2,7 @@ from email.policy import default
 from inspect import trace
 from ecies.utils import generate_eth_key
 from ecies import encrypt, decrypt
+from base64 import b64encode, b64decode
 import binascii, json, os, sys
 import imaplib
 import email
@@ -79,8 +80,8 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     # create the email message headers and set the payload
     secret = json.dumps(secret)
     msg = EmailMessage()
-    if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'utf-8').hex()
-    if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'utf-8').hex()
+    if not keyrequest: msg['X-Gmail-Message-State'] = b64encode(bytes.fromhex(bytes(secret,'utf-8').hex())).decode()
+    if keyrequest: msg['X-Google-Message-State'] = b64encode(bytes.fromhex(bytes(secret,'utf-8').hex())).decode()
     msg['From'] = from_address.strip()
     msg['To'] = to_address.strip()
     msg['Subject'] = subject.strip()
@@ -162,7 +163,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                     msg = email.message_from_string(str(arr[1],'utf-8"'))
                     if "X-Google-Message-State" in msg.keys():
                         email_subject = msg['subject']
-                        SecretServiceKey = decode_header(msg['X-Google-Message-State'])
+                        SecretServiceKey = decode_header(b64decode(msg['X-Google-Message-State'].encode()).hex())
                         #print(SecretService, 'Debug', SecretService[0][1]) 
                        # SecretService = bytes.fromhex(SecretService[0][0])
                         
@@ -195,7 +196,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                 return
                             
                     if "X-Gmail-Message-State" in msg.keys():
-                        SecretService = decode_header(msg['X-Gmail-Message-State'])
+                        SecretService = decode_header(b64decode(msg['X-Gmail-Message-State'].encode()).hex())
                         #print(SecretService, 'Debug', SecretService[0][1]) 
                         # SecretService = bytes.fromhex(SecretService[0][0])
                         
