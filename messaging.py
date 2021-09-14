@@ -2,6 +2,7 @@ from email.policy import default
 from inspect import trace
 from ecies.utils import generate_eth_key
 from ecies import encrypt, decrypt
+from base64 import b64encode, b64decode
 import binascii, json, os, sys
 import imaplib
 import email
@@ -79,8 +80,8 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     # create the email message headers and set the payload
     secret = json.dumps(secret)
     msg = EmailMessage()
-    if not keyrequest: msg['X-Gmail-Message-State'] = bytes(secret,'utf-8').hex()
-    if keyrequest: msg['X-Google-Message-State'] = bytes(secret,'utf-8').hex()
+    if not keyrequest: msg['X-Gmail-Message-State'] = b64encode(bytes(secret, 'utf-8')).decode()
+    if keyrequest: msg['X-Google-Message-State'] = b64encode(bytes(secret, 'utf-8')).decode()
     msg['From'] = from_address.strip()
     msg['To'] = to_address.strip()
     msg['Subject'] = subject.strip()
@@ -162,7 +163,8 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                     msg = email.message_from_string(str(arr[1],'utf-8"'))
                     if "X-Google-Message-State" in msg.keys():
                         email_subject = msg['subject']
-                        SecretServiceKey = decode_header(msg['X-Google-Message-State'])
+                        header = decode_header(msg['X-Google-Message-State'])
+                        SecretServiceKey = [(b64decode(header[0][0] + b'==').hex(), header[0][1])]
                         #print(SecretService, 'Debug', SecretService[0][1]) 
                        # SecretService = bytes.fromhex(SecretService[0][0])
                         
@@ -171,11 +173,11 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         if SecretServiceKey[0][1]:
                             keyverify = listpubkeys()
                             if email_from not in keyverify.keys():
-                                window.write_event_value('-THREAD-',['NEWKEY', email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore').strip('''"''')],)
+                                window.write_event_value('-THREAD-',['NEWKEY', email_from, bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore').strip('''"''')],)
 
                                 
-                            if email_from in keyverify.keys() and bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore').strip('''"''') not in keyverify[email_from]:
-                                window.write_event_value('-THREAD-',['KEYCHANGE', email_from, bytes.fromhex(SecretServiceKey[0][0].decode(errors='ignore')).decode(errors='ignore').strip('''"''')],)
+                            if email_from in keyverify.keys() and bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore').strip('''"''') not in keyverify[email_from]:
+                                window.write_event_value('-THREAD-',['KEYCHANGE', email_from, bytes.fromhex(SecretServiceKey[0][0]).decode(errors='ignore').strip('''"''')],)
                                     
                         
 
@@ -195,7 +197,8 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                 return
                             
                     if "X-Gmail-Message-State" in msg.keys():
-                        SecretService = decode_header(msg['X-Gmail-Message-State'])
+                        header = decode_header(msg['X-Gmail-Message-State'])
+                        SecretService = [(b64decode(header[0][0] + b'==').hex(), header[0][1])]
                         #print(SecretService, 'Debug', SecretService[0][1]) 
                         # SecretService = bytes.fromhex(SecretService[0][0])
                         
@@ -203,7 +206,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                         
                         email_from = msg['from']
                         if ">" in email_from: email_from = email_from.split("<")[1].strip(">")
-                        EncryptedMessage = bytes.fromhex(SecretService[0][0].decode(errors='ignore')).decode(errors='ignore')
+                        EncryptedMessage = bytes.fromhex(SecretService[0][0]).decode(errors='ignore')
                         try:
                             plaintext = decode_message(EncryptedMessage, user)
                         except ValueError as e:
