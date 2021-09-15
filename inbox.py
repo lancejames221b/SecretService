@@ -254,7 +254,7 @@ def inbox():
             if keyverification[0] == 'KEYCHANGE' and keyverification[2] not in keylist:
                 keyimage(keyverification[2])
                 QUERY = sg.popup_ok_cancel(keyverification[1]+" PUBLIC KEY HAS CHANGED!!!\n"+keyverification[2]+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=keyverification[1]+' Updated Key Approval',keep_on_top=True,image='key.png', font='Ubuntu')
-                if QUERY == "Yes": 
+                if QUERY == "OK": 
                     logkeys(keyverification[1], keyverification[2])
                     window['status'].update("Public Key Updated: "+keyverification[1])
                     keylist.append(keyverification[2])
