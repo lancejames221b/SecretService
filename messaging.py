@@ -110,7 +110,6 @@ def logkeys(from_email, pubkey):
     return keyset
 
 def getkeys(user):
-    print(user)
     multiple_user = []
     if os.path.isfile('.pubkeys'): 
         keyset = json.load(open('.pubkeys'))
