@@ -219,7 +219,7 @@ def inbox():
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True, return_keyboard_events=True).Finalize()
     data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
 
-    threading.Thread(target=read_email_from_gmail,args=(window,data),daemon=True).start()
+    threading.Thread(target=read_email_from_gmail,args=(window,[]),daemon=True).start()
     
     while True:
         event, values = window.read()
@@ -230,7 +230,7 @@ def inbox():
             window.TKroot.clipboard_append(str(mypubkey))
             sg.PopupOK(str(mypubkey), title='Your Public Key Copied to Clipboard')
         if event == "Check Email":
-            threading.Thread(target=read_email_from_gmail,args=(window,data),daemon=True).start()
+            threading.Thread(target=read_email_from_gmail,args=(window,[]),daemon=True).start()
         if event == 'table':
             window['output'].update('')
             for element in values[event]:
