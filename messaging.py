@@ -6,6 +6,7 @@ from base64 import b64encode, b64decode
 import binascii, json, os, sys
 import imaplib
 import email
+import arrow
 from email.header import decode_header
 # used for sending the email
 import smtplib  as smtp
@@ -30,7 +31,10 @@ def getrandomchaffe(chaffe=chaffe):
     body = chaffe['content'][randnum]
     return {'subject': str(subject), 'body': str(body)}
 
-
+def parse_datetime(messagelist):
+    for i in range(len(messagelist)):
+        messagelist[i][1] = messagelist[i][1].format('ddd, D MMM YYYY hh:mm:ss A')
+    return messagelist
 
 def listpubkeys():
     keys = json.load(open('.pubkeys'))
@@ -126,6 +130,16 @@ def getkeys(user):
     except Exception as e:
         traceback.print_exc()
         return None
+
+def convert_datetime(email_date):
+    if email_date[6] == ' ':
+        email_date = email_date[:5] + '0' + email_date[5:]
+    datetimeobj = None
+    if email_date[-1].isalpha():
+        datetimeobj = arrow.get(email_date, 'DD MMM YYYY HH:mm:ss ZZZ')
+    else:
+        datetimeobj = arrow.get(email_date, 'DD MMM YYYY HH:mm:ss Z')
+    return datetimeobj
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
     #global data
@@ -218,14 +232,20 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                             #   window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n",plaintext['plaintext'])
                             #  window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                             try:
-                                messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                                if '''Wed 01 Sep 2021 02:09:28 PM EDT''' in messages[0]:
+                                if len(messages) > 0 and '''Wed, 01 Sep 2021 02:09:28 PM''' in messages[0]:
                                     messages.pop(0)
-                                #messages.sort()
+                                for i in range(len(messages)):
+                                    if type(messages[i][1]) == type(''):
+                                        messages[i][1] = arrow.get(messages[i][1], 'ddd, D MMM YYYY hh:mm:ss A')
+                                messages.append([email_from, convert_datetime(msg['Date']), userpubkeys[email_from],plaintext['plaintext']])
+                                messages.sort(key=lambda x: x[1], reverse=True)
+                                newmessages = parse_datetime(messages)
                                 
-                                window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
-                                window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+                                window['table'].update(values=newmessages)
+                                window['table'].update(num_rows=min(len(newmessages), 5))
+                                window.write_event_value('messages_update', newmessages)
                             except Exception as e:
+                                print(e)
                                 Q = True
 
                     
@@ -242,12 +262,18 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                 # window['-MESSAGES-'].print("\n---MESSAGE BEGIN---\n\n", plaintext['plaintext'])
                                 # window['-MESSAGES-'].print("\n---MESSAGE END---\n")
                                 try:
-                                    messages.append([email_from, msg['Date'], userpubkeys[email_from],plaintext['plaintext']])
-                                    if '''Wed 01 Sep 2021 02:09:28 PM EDT''' in messages[0]:
+                                    if len(messages) > 0 and '''Wed, 01 Sep 2021 02:09:28 PM''' in messages[0]:
                                         messages.pop(0)
-                                    #messages.sort()
-                                    window['table'].update(values=list(messages for messages,_ in itertools.groupby(messages)))
-                                    window['table'].update(num_rows=min(len(list(messages for messages,_ in itertools.groupby(messages))), 5))
+                                    for i in range(len(messages)):
+                                        if type(messages[i][1]) == type(''):
+                                            messages[i][1] = arrow.get(messages[i][1], 'ddd, D MMM YYYY hh:mm:ss A')
+                                    messages.append([email_from, convert_datetime(msg['Date']), userpubkeys[email_from],plaintext['plaintext']])
+                                    messages.sort(key=lambda x: x[1], reverse=True)
+                                    newmessages = parse_datetime(messages)
+
+                                    window['table'].update(values=newmessages)
+                                    window['table'].update(num_rows=min(len(newmessages), 5))
+                                    window.write_event_value('messages_update', newmessages)
                                 except Exception as e:
                                     Q = True
                     

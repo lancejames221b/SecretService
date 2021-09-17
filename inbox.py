@@ -5,6 +5,7 @@ from random import randint as rand
 from messaging import *
 import threading
 import time
+import arrow
 sg.theme("Black")
 
 data = data
@@ -27,6 +28,20 @@ def keyimage(string):
  
     img.save('key.png')
 
+def parse_datetime(messagelist):
+    for i in range(len(messagelist)):
+        messagelist[i][1] = messagelist[i][1].format('ddd, D MMM YYYY hh:mm:ss A')
+    return messagelist
+
+def convert_datetime(email_date):
+    if email_date[6] == ' ':
+        email_date = email_date[:5] + '0' + email_date[5:]
+    datetimeobj = None
+    if email_date[-1].isalpha():
+        datetimeobj = arrow.get(email_date, 'DD MMM YYYY HH:mm:ss ZZZ')
+    else:
+        datetimeobj = arrow.get(email_date, 'DD MMM YYYY HH:mm:ss Z')
+    return datetimeobj
 
 def compose():
     decoy = getrandomchaffe()
@@ -217,7 +232,7 @@ def inbox():
               [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('My Public Key', key='MyKey'), sg.Button('Close'), sg.Text(key='status', size=(50,1), text_color='green', background_color='black')]]
 
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True, return_keyboard_events=True).Finalize()
-    data = [['lancejames@unit221b.com', 'Wed 01 Sep 2021 02:09:28 PM EDT', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
+    data = [['lancejames@unit221b.com', 'Wed, 01 Sep 2021 02:09:28 PM', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
 
     threading.Thread(target=read_email_from_gmail,args=(window,[]),daemon=True).start()
     
@@ -237,8 +252,12 @@ def inbox():
                 try:
                     window['output'].update(data[element][3])
                     selection = data[element]
-                except:
+                except Exception as e:
+                    print(e)
                     sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself")
+
+        if event == 'messages_update':
+            data = values[event]
                 
         if event == THREAD_EVENT:
             QUERY = str()
