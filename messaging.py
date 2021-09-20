@@ -76,7 +76,13 @@ def decryption(ciphertext, attaches, privKeyHex):
             decrpyted_attachments.append(attach)
     return {'plaintext': decrypted.decode(), 'attachments': decrpyted_attachments}
 
-    
+def save_attachment(filepath, filename, b64file):
+    filepath = filepath.replace('\\', '/')
+    if not(os.path.exists(filepath)):
+        try:
+            os.makedirs(filepath)
+        except:
+            return 'invalid filepath'
     
 
 # create and send email
