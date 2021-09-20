@@ -1,3 +1,4 @@
+from datetime import date
 from email.policy import default
 from inspect import trace
 from ecies.utils import generate_eth_key
@@ -139,9 +140,7 @@ def convert_datetime(email_date):
         datetimeobj = arrow.get(email_date, 'DD MMM YYYY HH:mm:ss ZZZ')
     else:
         datetimeobj = arrow.get(email_date, 'DD MMM YYYY HH:mm:ss Z')
-    timezone = datetimeobj.format('Z')[:3]
-    datetimeobj.shift(hours=int(timezone))
-    datetimeobj.replace(tzinfo='+00:00')
+    datetimeobj = datetimeobj.to('local')
     return datetimeobj
     
 def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SERVER="imap.gmail.com", SMTP_PORT=993):
@@ -239,12 +238,9 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                     messages.pop(0)
                                 for i in range(len(messages)):
                                     if type(messages[i][1]) == type(''):
-                                        messages[i][1] = arrow.get(messages[i][1], 'ddd, D MMM YYYY h:mm:ss A')
-                                        timezone = messages[i][1].format('Z')[:3]
-                                        messages[i][1].shift(hours=int(timezone))
-                                        messages[i][1].replace(tzinfo='+00:00')
+                                        messages[i][1] = arrow.get(messages[i][1], 'ddd, D MMM YYYY h:mm:ss A').replace(tzinfo='local')
                                 messages.append([email_from, convert_datetime(msg['Date']), userpubkeys[email_from],plaintext['plaintext']])
-                                messages.sort(key=lambda x: x[1])
+                                messages.sort(key=lambda x: int(x[1].timestamp()), reverse=True)
                                 newmessages = parse_datetime(messages)
                                 
                                 window['table'].update(values=newmessages)
@@ -272,9 +268,9 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
                                         messages.pop(0)
                                     for i in range(len(messages)):
                                         if type(messages[i][1]) == type(''):
-                                            messages[i][1] = arrow.get(messages[i][1], 'ddd, D MMM YYYY h:mm:ss A')
+                                            messages[i][1] = arrow.get(messages[i][1], 'ddd, D MMM YYYY h:mm:ss A').replace(tzinfo='local')
                                     messages.append([email_from, convert_datetime(msg['Date']), userpubkeys[email_from],plaintext['plaintext']])
-                                    messages.sort(key=lambda x: x[1])
+                                    messages.sort(key=lambda x: int(x[1].timestamp()), reverse=True)
                                     newmessages = parse_datetime(messages)
 
                                     window['table'].update(values=newmessages)
