@@ -48,16 +48,33 @@ def keygen(email, password, service):
     pubKeyHex = privKey.public_key.to_hex()
     return json.dump({email:{'pubKeyHex': pubKeyHex,'privKeyHex': privKeyHex, 'password': password, 'service':service}},open('.SecretService', 'w'),indent=4)
 
-def encryption(pubKeyHex, plaintext):
+def encryption(pubKeyHex, plaintext, attach):
     if isinstance(plaintext, str):
         plaintext = plaintext.encode()
     encrypted = encrypt(pubKeyHex, plaintext)
-    return {'ciphertext': str(binascii.hexlify(encrypted)).strip("b'"), 'pubKeyHex': pubKeyHex}
+    attaches = []
+    for a in attach:
+        if isinstance(a[0], str):
+            a[0] = a[0].encode()
+        if isinstance(a[1], str):
+            a[1] = a[1].encode()
+        attaches.append([encrypt(pubKeyHex, a[0]), encrypt(pubKeyHex, a[1])])
+    attaches = json.dumps(attaches).encode()
+    return {'ciphertext': str(binascii.hexlify(encrypted)).strip("b'"), 'attachments': str(binascii.hexlify(attaches)).strip("b'"), 'pubKeyHex': pubKeyHex}
 
-def decryption(ciphertext, privKeyHex):
+def decryption(ciphertext, attaches, privKeyHex):
     ciphertext = ciphertext
-    decrypted = decrypt(privKeyHex, binascii.unhexlify(ciphertext)) 
-    return {'plaintext': decrypted.decode()}
+    decrypted = decrypt(privKeyHex, binascii.unhexlify(ciphertext))
+    decrpyted_attachments = []
+    if attaches:
+        attachments_list = json.loads(binascii.unhexlify(attaches).decode())
+        print(attachments_list)
+        for i in range(len(attachments_list)):
+            attach = [decrypt(privKeyHex, attachments_list[i][0]), decrypt(privKeyHex, attachments_list[i][1])]
+            attach[0] = attach[0].decode()
+            attach[1] = attach[1].decode()
+            decrpyted_attachments.append(attach)
+    return {'plaintext': decrypted.decode(), 'attachments': decrpyted_attachments}
 
     
     
@@ -103,7 +120,7 @@ def decode_message(message, user):
     incoming = json.loads(message)
     mykeys = json.load(open('.SecretService'))
     privkey = mykeys[user]['privKeyHex']
-    plaintext = decryption(incoming['ciphertext'], privkey)
+    plaintext = decryption(incoming['ciphertext'], incoming.get('attachments'), privkey)
     return plaintext
     
 def logkeys(from_email, pubkey):
