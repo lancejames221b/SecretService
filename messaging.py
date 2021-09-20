@@ -162,7 +162,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
         mail.login(FROM_EMAIL,FROM_PWD)
         mail.select('inbox')
 
-        data = mail.search(None, 'SINCE "20-Aug-2021"')
+        data = mail.search(None, 'SINCE "01-Sep-2021"')
         mail_ids = data[1]
         id_list = mail_ids[0].split()   
         first_email_id = int(id_list[0])
@@ -175,7 +175,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
             for response_part in data:
                 arr = response_part[0]
                 if isinstance(arr, tuple):
-                    msg = email.message_from_string(str(arr[1],'utf-8"'))
+                    msg = email.message_from_string(str(arr[1]))
                     if "X-Google-Message-State" in msg.keys():
                         email_subject = msg['subject']
                         header = decode_header(msg['X-Google-Message-State'])
