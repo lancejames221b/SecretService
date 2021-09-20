@@ -9,6 +9,7 @@ import arrow
 sg.theme("Black")
 
 data = data
+attachments = []
 
 def users_parser(email):
     multiple = []
@@ -29,6 +30,7 @@ def keyimage(string):
     img.save('key.png')
 
 def compose():
+    global attachments
     decoy = getrandomchaffe()
     userinfo = json.load(open('.SecretService'))
     user = str()
@@ -81,11 +83,12 @@ def compose():
                                 to_address=values['-EMAIL TO-'],
                                 subject=values['-EMAIL SUBJECT-'],
                                 message_text=values['-EMAIL TEXT-'],
-                                secret=encryption(pubkey, values['-SECRET TEXT-']),
+                                secret=encryption(pubkey, values['-SECRET TEXT-'], attachments),
                                 user=user,
                                 password=userinfo[user]['password'],
                                 service=service)
                     window.close()
+                    attachments = []
                 if pubkey and isinstance(pubkey, list):
                     values['-EMAIL TO-'] = users_parser(values['-EMAIL TO-'])
                     for index, keys in enumerate(pubkey):
@@ -95,11 +98,12 @@ def compose():
                                     to_address=values['-EMAIL TO-'][index],
                                     subject=values['-EMAIL SUBJECT-'],
                                     message_text=values['-EMAIL TEXT-'],
-                                    secret=encryption(keys, values['-SECRET TEXT-']),
+                                    secret=encryption(keys, values['-SECRET TEXT-'], attachments),
                                     user=user,
                                     password=userinfo[user]['password'],
                                     service=service)
                     window.close()
+                    attachments = []
 
                 else:
                     sg.popup("Missing Pubkey for User. Click Send Your Key and Request Key From User.")
@@ -107,7 +111,7 @@ def compose():
 
 
 def reply(to_email = None, reply_message = None):
-    global data
+    global data, attachments
     decoy = getrandomchaffe()
     userinfo = json.load(open('.SecretService'))
     user = str()
@@ -142,7 +146,7 @@ def reply(to_email = None, reply_message = None):
                             to_address=to_email,
                             subject=values['-EMAIL SUBJECT-'],
                             message_text=values['-EMAIL TEXT-'],
-                            secret=encryption(pubkey, values['-SECRET TEXT-']),
+                            secret=encryption(pubkey, values['-SECRET TEXT-'], attachments),
                             user=user,
                             password=userinfo[user]['password'],
                             service=service)
@@ -155,11 +159,12 @@ def reply(to_email = None, reply_message = None):
                                 to_address=to_email[index],
                                 subject=values['-EMAIL SUBJECT-'],
                                 message_text=values['-EMAIL TEXT-'],
-                                secret=encryption(keys, values['-SECRET TEXT-']),
+                                secret=encryption(keys, values['-SECRET TEXT-'], attachments),
                                 user=user,
                                 password=userinfo[user]['password'],
                                 service=service)
                 window.close()
+            attachments = []
 
 
 
