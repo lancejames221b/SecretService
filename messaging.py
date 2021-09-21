@@ -79,6 +79,11 @@ def decryption(ciphertext, attaches, privKeyHex):
 def save_attachment(filepath, filename, b64file): # filepath MUST be a raw string
     splitfile = filename.split('.')
     filepath = filepath.replace('\\', '/')
+    if len(splitfile) > 2:
+        joinedname = ''
+        for i in range(len(splitfile) - 1):
+            joinedname = joinedname + splitfile[i] + '.'
+        splitfile = [joinedname[:-1], splitfile[-1]]
     if not(os.path.exists(filepath)):
         try:
             os.makedirs(filepath)
