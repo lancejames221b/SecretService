@@ -85,8 +85,8 @@ def send_an_email(from_address, to_address, subject, message_text, secret, user,
     # create the email message headers and set the payload
     secret = json.dumps(secret)
     msg = EmailMessage()
-    if not keyrequest: msg['X-Gmail-Message-State'] = b64encode(bytes(secret, 'utf-8')).decode()
-    if keyrequest: msg['X-Google-Message-State'] = b64encode(bytes(secret, 'utf-8')).decode()
+    if not keyrequest: msg['X-Gmail-Message-State'] = b64encode(bytes.fromhex(bytes(secret,'utf-8').hex())).decode()
+    if keyrequest: msg['X-Google-Message-State'] = b64encode(bytes.fromhex(bytes(secret,'utf-8').hex())).decode()
     msg['From'] = from_address.strip()
     msg['To'] = to_address.strip()
     msg['Subject'] = subject.strip()
@@ -175,7 +175,7 @@ def read_email_from_gmail(window,messages = data, downloadkeys = False, SMTP_SER
             for response_part in data:
                 arr = response_part[0]
                 if isinstance(arr, tuple):
-                    msg = email.message_from_string(str(arr[1]))
+                    msg = email.message_from_string(str(arr[1], 'utf-8'))
                     if "X-Google-Message-State" in msg.keys():
                         email_subject = msg['subject']
                         header = decode_header(msg['X-Google-Message-State'])
