@@ -76,14 +76,28 @@ def decryption(ciphertext, attaches, privKeyHex):
             decrpyted_attachments.append(attach)
     return {'plaintext': decrypted.decode(), 'attachments': decrpyted_attachments}
 
-def save_attachment(filepath, filename, b64file):
+def save_attachment(filepath, filename, b64file): # filepath MUST be a raw string
+    splitfile = filename.split('.')
     filepath = filepath.replace('\\', '/')
     if not(os.path.exists(filepath)):
         try:
             os.makedirs(filepath)
         except:
             return 'invalid filepath'
-    
+    copynumber = ''
+    if os.path.exists(filepath + filename):
+        fileversion = 1
+        while True:
+            if os.path.exists(f'{filepath}{splitfile[0]}({str(fileversion)}).{splitfile[1]}'):
+                fileversion = fileversion + 1
+            else:
+                copynumber = str(fileversion)
+                break
+    modifiedfilename = filename
+    if copynumber:
+        modifiedfilename = f'{splitfile[0]}({copynumber}).{splitfile[1]}'
+    with open(os.path.join(filepath, modifiedfilename), 'w+b') as temp_file:
+        temp_file = b64decode(b64file.read())
 
 # create and send email
 def send_an_email(from_address, to_address, subject, message_text, secret, user, password,service='gmail',keyrequest = False,chaffe=True):
