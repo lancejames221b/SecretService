@@ -44,7 +44,7 @@ def compose():
               [sg.Multiline(size=(150,20), key='-EMAIL TEXT-',background_color='white', text_color='black',font='Ubuntu',default_text=decoy['body'])],
               [sg.Text('Enter Secret Message', font='Ubuntu')],
               [sg.Multiline(size=(150,20), key='-SECRET TEXT-',background_color='black', text_color='green',font='Ubuntu')],
-              [sg.Button('Send Email', key='Send'),  sg.Button('Exit', key = 'Exit')]
+              [sg.Button('Send Email', key='Send'),  sg.Button('Close', key = 'Exit')]
     ]
     window = sg.Window('SecretService - '+str(user), layout_compose,resizable=True, location = (0,0), size=(1920,1080)).Finalize()
     while True:  # Event Loop
@@ -54,10 +54,10 @@ def compose():
             break
         if event == 'keyexchange':
             if not values['-EMAIL TO-']:
-                sg.popup('Forgot to put a user in the To field')
+                sg.popup('Forgot to put a user in the To field',location=(0,0))
             else:
                 pubkey = getkeys(values['-EMAIL TO-'])
-                sg.popup_quick_message('Sending your Public Key... this will take a moment...', background_color='red')
+                sg.popup_quick_message('Sending your Public Key... this will take a moment...', background_color='red',location=(0,0))
             
                 send_an_email(from_address=user,
                             to_address=values['-EMAIL TO-'],
@@ -71,11 +71,11 @@ def compose():
         if event == 'Send':
             pubkey = getkeys(values['-EMAIL TO-'])
             if not values['-EMAIL TO-']:
-                sg.popup('Forgot to put a user in the To field')
+                sg.popup('Forgot to put a user in the To field',location=(0,0))
             else:
                 if pubkey and isinstance(pubkey, str):
 
-                    sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red')
+                    sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red',location = (0,0))
                 
                     send_an_email(from_address=user,
                                 to_address=values['-EMAIL TO-'],
@@ -102,7 +102,7 @@ def compose():
                     window.close()
 
                 else:
-                    sg.popup("Missing Pubkey for User. Click Send Your Key and Request Key From User.")
+                    sg.popup("Missing Pubkey for User. Click Send Your Key and Request Key From User.", location=(0,0))
     window.close()              
 
 
@@ -124,7 +124,7 @@ def reply(to_email = None, reply_message = None):
               [sg.Multiline(size=(150,20), key='-EMAIL TEXT-',background_color='white', text_color='black',font='Ubuntu',default_text=decoy['body'])],
               [sg.Text('Enter Secret Message', font='Ubuntu')],
               [sg.Multiline(size=(150,20), key='-SECRET TEXT-',default_text=reply_message,background_color='black', text_color='green',font='Ubuntu')],
-              [sg.Button('Send', key='Send'), sg.Button('Exit', key = 'Exit')]]
+              [sg.Button('Send', key='Send'), sg.Button('Close', key = 'Exit')]]
     window = sg.Window('SecretService - '+str(user), layout_reply,resizable=True,location = (0,0), size=(1920,1080)).Finalize()
 
 
@@ -136,7 +136,7 @@ def reply(to_email = None, reply_message = None):
     
         if event == 'Send':
             pubkey = getkeys(to_email)
-            sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red')
+            sg.popup_quick_message('Sending your message... this will take a moment...', background_color='red',location=(0,0))
             if pubkey and isinstance(pubkey, str):
                             send_an_email(from_address=user,
                             to_address=to_email,
@@ -167,7 +167,7 @@ def reply(to_email = None, reply_message = None):
         
         if event == 'keyexchange':
                 pubkey = getkeys(to_email)
-                sg.popup_quick_message('Sending your Public Key... this will take a moment...', background_color='red')
+                sg.popup_quick_message('Sending your Public Key... this will take a moment...', background_color='red',location=(0,0))
             
                 send_an_email(from_address=user,
                             to_address=to_email,
@@ -208,13 +208,13 @@ def inbox():
                         headings=header_list,
                         auto_size_columns=True,
                         justification='left',
-                        num_rows=min(len(data), 5),
+                        num_rows=min(len(data), 3),
                         display_row_numbers=False,
                         font='Ubuntu',
                         size=(90,40),
                         key='table', enable_events=True,row_height=50,col_widths=50,right_click_menu=['&Right', ['Reply']]),sg.Image('logo.png'), ],
                 [sg.Multiline(size = (84,40), key='output',background_color='black', text_color='green', font='Ubuntu'),sg.Column(layout=options)],
-              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('My Public Key', key='MyKey'), sg.Button('Close'), sg.Text(key='status', size=(50,1), text_color='green', background_color='black')]]
+              [sg.Button("Check Email"), sg.Button('Compose Email/Key Exchange', key='Compose Email'), sg.Button('My Public Key', key='MyKey'), sg.Button('Exit'), sg.Text(key='status', size=(50,1), text_color='green', background_color='black')]]
 
     window = sg.Window('SecretService Inbox - '+str(user), layout,auto_size_text=True,resizable=True, return_keyboard_events=True,location = (0,0), size=(1920,1080)).Finalize()
     data = [['lancejames@unit221b.com', 'Wed, 01 Sep 2021 2:09:28 PM', '0x5b639f8907554525ab4e18e9c387433c9c4d8131eef89d983da19b6c7da9e17f87ce08e8667ccc9c985908f3ce3878dd9212f091cfa6f8bfe668730e0347ccc7', 'Welcome to SecretService Inbox\n\nFeel free to email me any time to exchange keys. Simply right-mouse on the message and click reply!']]
@@ -223,12 +223,12 @@ def inbox():
     
     while True:
         event, values = window.read()
-        if event in ('Close', None): break
+        if event in ('Close', 'Exit', None): break
         if event == 'MyKey':
             
             window.TKroot.clipboard_clear()
             window.TKroot.clipboard_append(str(mypubkey))
-            sg.PopupOK(str(mypubkey), title='Your Public Key Copied to Clipboard')
+            sg.PopupOK(str(mypubkey), title='Your Public Key Copied to Clipboard',location=(0,0))
         if event == "Check Email":
             threading.Thread(target=read_email_from_gmail,args=(window,[]),daemon=True).start()
         if event == 'table':
@@ -239,7 +239,7 @@ def inbox():
                     selection = data[element]
                 except Exception as e:
                     print(e)
-                    sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself")
+                    sg.popup_quick_message("Weird Error, click Check Email again and it will fix itself",location=(0,0))
 
         if event == 'messages_update':
             data = values[event]
@@ -257,7 +257,7 @@ def inbox():
                     keylist.append(keyverification[2])
             if keyverification[0] == 'KEYCHANGE' and keyverification[2] not in keylist:
                 keyimage(keyverification[2])
-                QUERY = sg.popup_ok_cancel(keyverification[1]+" PUBLIC KEY HAS CHANGED!!!\n"+keyverification[2]+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=keyverification[1]+' Updated Key Approval',keep_on_top=True,image='key.png', font='Ubuntu')
+                QUERY = sg.popup_ok_cancel(keyverification[1]+" PUBLIC KEY HAS CHANGED!!!\n"+keyverification[2]+"\nIf you have verified the user's new public key then hit OK, otherwise hit Cancel",title=keyverification[1]+' Updated Key Approval',keep_on_top=True,image='key.png', font='Ubuntu',location=(0,0))
                 if QUERY == "OK": 
                     logkeys(keyverification[1], keyverification[2])
                     window['status'].update("Public Key Updated: "+keyverification[1])
